@@ -1,0 +1,31 @@
+- hosts: 172.31.15.2
+  remote_user: ubuntu
+  become_user: root
+  become_method: sudo
+  become: yes
+  environment:
+    PATH: /usr/bin
+
+  vars:
+    package_name: openjdk-8-jdk
+    jar_file: spring-petclinic-2.7.0-SNAPSHOT.jar
+    dest_path: /home/ubuntu
+
+  tasks:
+    - name: install "{{package_name}}" in remote machine
+      apt:
+        name: "{{package_name}}"
+        state: latest
+        update_cache: yes
+
+    - name: copy "{{jar_file}}"  to remote server
+      copy:
+        src: "/etc/ansible/files/{{jar_file}}"
+        dest: "{{dest_path}}/{{jar_file}}"
+
+    - name: set the owner for jar as ubuntu
+      shell: chmod 777  "{{dest_path}}/{{jar_file}}"
+      become: True 
+
+    - name: run  "{{jar_file}}" in remote
+      shell: /usr/bin/java -jar "{{dest_path}}/{{jar_file}}" &
